@@ -35,10 +35,10 @@ weight_data <- Data_01 %>%
 # Add log-transformed and z-score standardized variables for sunday_weight
 The following code uses logs transformation to reduce skewness and normalize the data distribution and Z-score standardization to center and scale the sunday_weight variable for comparison across participants.
 ```{r}
-Data_01 <- Data_01 %>%
+weight_data <- weight_data %>%
   mutate(
-    log_sunday_weight = log(sunday_weight),  # Log transformation
-    z_sunday_weight = (sunday_weight - mean(sunday_weight, na.rm = TRUE)) / sd(sunday_weight, na.rm = TRUE)  # Z-score standardization
+    log_sunday_weight = log(sunday_weight),
+    z_sunday_weight = (sunday_weight - mean(sunday_weight, na.rm = TRUE)) / sd(sunday_weight, na.rm = TRUE)  
   )
 ```
 #Visualize the raw data of sunday_weight vs. week.
