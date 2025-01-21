@@ -4,27 +4,65 @@ author: "Enhui Wang"
 date: "2025-01-21"
 output: github_document
 ---
-
+I worked with this project: "Draw plots by hand of some data that are of interest to you, and transform the variables in several different ways. Interpret your results." The goal of this portfolio is to undertand the patterns in participants' weight data (sunday_weight) over time (weeks). 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
 ```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+# Remove rows with missing weights and create week numbers
+The following code removes the row where sunday_weight is missing, group data by participants_id, and adds a variable called 'week' to track each participant's week number. 
+```{r}
+weight_data <- Data_01 %>%
+  filter(!is.na(sunday_weight)) %>%  
+  group_by(participant_id) %>%  
+  mutate(week = row_number()) %>%  
+  ungroup()
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+# Add log-transformed and z-score standardized variables for sunday_weight
+The following code uses logs transformation to reduce skewness and normalize the data distribution and Z-score standardization to center and scale the sunday_weight variable for comparison across participants.
+```{r}
+weight_data <- weight_data %>%
+  mutate(
+    log_sunday_weight = log(sunday_weight), 
+    z_sunday_weight = (sunday_weight - mean(sunday_weight)) / sd(sunday_weight)  
+  )
 ```
+#Visualize the raw data of sunday_weight vs. week.
+This plot shows the raw sunday_weight values for each participant over time. The plots show a decreasing trend in weight for many participants, indicating weight loss over time. It suggests individual differences in weight loss. 
+```{r}
+library(ggplot2)
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+ggplot(weight_data, aes(x = week, y = sunday_weight, color = participant_id)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Raw Data: Sunday Weight Over Weeks",
+    x = "Week",
+    y = "Sunday Weight"
+  ) 
+```
+#Visualize the log-transformed data of log_sunday_weight vs. week.
+The log transformation reduces the impact of large values (participants with very high initial weights. As time goes on, the trend in weight is less steep, indicating that weight is less likely to be lost. Also, it normalizes the scale, providing a clearer view of the rate of weight change over time, regardless of absolute starting weights.
+```{r}
+ggplot(weight_data, aes(x = week, y = log_sunday_weight, color = participant_id)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Log-Transformed Data: Sunday Weight Over Weeks",
+    x = "Week",
+    y = "Log(Sunday Weight)"
+  )
+```
+#Visualize the standardized data of z_sunday_weight vs. week.
+I can use standardized data to compare the weight across the participants. It shows participants whose weight trajectories differ from the group average, identifying participants who may need further analysis. 
+```{r}
+ggplot(weight_data, aes(x = week, y = z_sunday_weight, color = participant_id)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    title = "Standardized Data: Sunday Weight Over Weeks",
+    x = "Week",
+    y = "Z-Score(Sunday Weight)"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "right")
+```
