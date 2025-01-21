@@ -7,6 +7,21 @@ output: github_document
 I worked with this project: "Draw plots by hand of some data that are of interest to you, and transform the variables in several different ways. Interpret your results." The goal of this portfolio is to undertand the patterns in participants' weight data (sunday_weight) over time (weeks). 
 ```{r setup, include=FALSE}
 library(dplyr)
+Data_01 <- read.csv("/Users/gracceh/Desktop/R Class/Git/Portfolio_01/Data_01.csv")
+```
+```{r}
+# Identify rows with non-numeric values in sunday_weight
+non_numeric <- Data_01 %>%
+  filter(is.na(as.numeric(as.character(sunday_weight)))) %>%
+  select(participant_id, sunday_weight)
+
+print(non_numeric)
+```
+```{r}
+#Replace the entries in sunday_weight with NA
+Data_01 <- Data_01 %>%
+  mutate(sunday_weight = ifelse(grepl("^[0-9.]+$", sunday_weight), 
+                                as.numeric(sunday_weight), NA))
 ```
 # Remove rows with missing weights and create week numbers
 The following code removes the row where sunday_weight is missing, group data by participants_id, and adds a variable called 'week' to track each participant's week number. 
@@ -20,10 +35,10 @@ weight_data <- Data_01 %>%
 # Add log-transformed and z-score standardized variables for sunday_weight
 The following code uses logs transformation to reduce skewness and normalize the data distribution and Z-score standardization to center and scale the sunday_weight variable for comparison across participants.
 ```{r}
-weight_data <- weight_data %>%
+Data_01 <- Data_01 %>%
   mutate(
-    log_sunday_weight = log(sunday_weight), 
-    z_sunday_weight = (sunday_weight - mean(sunday_weight)) / sd(sunday_weight)  
+    log_sunday_weight = log(sunday_weight),  # Log transformation
+    z_sunday_weight = (sunday_weight - mean(sunday_weight, na.rm = TRUE)) / sd(sunday_weight, na.rm = TRUE)  # Z-score standardization
   )
 ```
 #Visualize the raw data of sunday_weight vs. week.
